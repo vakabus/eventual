@@ -1,0 +1,9 @@
+packages:
+  - path: "events/backend/api/types"
+    output_path: ../frontend/src/lib/types.ts
+    type_mappings:
+      time.Time: "string /* RFC3339 */"
+      null.String: "null | string"
+      null.Bool: "null | boolean"
+      uuid.UUID: "string /* uuid */"
+      uuid.NullUUID: "null | string /* uuid */"

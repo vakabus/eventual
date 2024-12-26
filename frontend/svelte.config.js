@@ -6,7 +6,9 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-
+	compilerOptions: {
+		runes: true
+	},
 	kit: {
 		adapter: adapter({
 			// default options are shown. On some platforms
@@ -16,7 +18,11 @@ const config = {
 			fallback: undefined,
 			precompress: false,
 			strict: true
-		})
+		}),
+		paths: {
+			base: '/static',
+			relative: true
+		}
 	}
 };
 
