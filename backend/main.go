@@ -2,11 +2,14 @@ package main
 
 import (
 	"embed"
-	"events/backend/api"
+	"events/backend/config"
+	"events/backend/routes"
 	"io/fs"
 	"log"
 	"mime"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 )
 
@@ -38,14 +41,22 @@ func staticHandler() http.Handler {
 	if os.Getenv("DEV") == "" {
 		// if not set or empty, serve static content from embeded fs
 		sub, _ := fs.Sub(staticFiles, "static")
-		return http.FileServer(htmlDir{http.FS(sub).(http.Dir)})
+		return http.StripPrefix("/static", http.FileServer(htmlDir{http.FS(sub).(http.Dir)}))
 	} else {
-		// else serve from the static directory
-		return http.FileServer(htmlDir{http.Dir("static")})
+		// else serve by reverse proxying to vite dev server
+		url, err := url.Parse("http://localhost:5173")
+		if err != nil {
+			panic(err)
+		}
+		proxy := httputil.NewSingleHostReverseProxy(url)
+		return proxy
 	}
 }
 
 func main() {
+	// Initialize configuration
+	config.InitializeViper()
+
 	// Windows may be missing this
 	err := mime.AddExtensionType(".js", "application/javascript")
 	if err != nil {
@@ -53,8 +64,8 @@ func main() {
 	}
 
 	router := http.NewServeMux()
-	router.Handle("/api/v1/", http.StripPrefix("/api/v1", api.Server()))
-	router.Handle("/static/", http.StripPrefix("/static", staticHandler()))
+	routes.AddRoutes(router)
+	router.Handle("/static/", staticHandler())
 	router.Handle("/{$}", http.RedirectHandler("/static/", http.StatusTemporaryRedirect))
 
 	log.Println("Server listening on http://127.0.0.1:8080")

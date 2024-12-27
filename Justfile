@@ -1,5 +1,13 @@
 run:
-    cd backend && go generate && DEV=true go run .
+    #!/bin/bash
+    set -e
+
+    cd backend
+    go generate
+    DEV=true go run . &
+
+    cd ../frontend
+    npm run dev
 
 lint:
     cd frontend && npm run lint

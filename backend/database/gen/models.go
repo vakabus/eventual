@@ -16,10 +16,16 @@ type EmailTemplate struct {
 }
 
 type Event struct {
+	ID          int64
+	Name        string
+	Description string
+	Deleted     sql.NullInt64
+}
+
+type EventOrganizer struct {
 	ID      int64
-	Name    string
-	Readme  interface{}
-	Deleted sql.NullInt64
+	EventID int64
+	UserID  int64
 }
 
 type Participant struct {
@@ -29,8 +35,10 @@ type Participant struct {
 }
 
 type User struct {
-	ID      int64
-	Name    string
-	Email   string
-	Deleted sql.NullInt64
+	ID         int64
+	TextID     string
+	Email      string
+	Name       string
+	PictureUrl string
+	Deleted    sql.NullInt64
 }

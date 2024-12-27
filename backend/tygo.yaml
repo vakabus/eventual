@@ -1,5 +1,5 @@
 packages:
-  - path: "events/backend/api/types"
+  - path: "events/backend/routes/api/types"
     output_path: ../frontend/src/lib/types.ts
     type_mappings:
       time.Time: "string /* RFC3339 */"

@@ -9,17 +9,93 @@ import (
 	"context"
 )
 
-const userByName = `-- name: UserByName :one
-SELECT id, name, email, deleted FROM users WHERE name = ?1 LIMIT 1
+const listEvents = `-- name: ListEvents :many
+SELECT id, name, description, deleted FROM events WHERE deleted = FALSE AND id IN (SELECT event_id FROM event_organizers WHERE user_id = ?1)
 `
 
-func (q *Queries) UserByName(ctx context.Context, name string) (User, error) {
-	row := q.db.QueryRowContext(ctx, userByName, name)
+func (q *Queries) ListEvents(ctx context.Context, userID int64) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, listEvents, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const newUser = `-- name: NewUser :exec
+INSERT INTO users ( text_id, email, name, picture_url ) VALUES ( ?1, ?2, ?3, ?4 )
+`
+
+type NewUserParams struct {
+	TextID     string
+	Email      string
+	Name       string
+	PictureUrl string
+}
+
+func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) error {
+	_, err := q.db.ExecContext(ctx, newUser,
+		arg.TextID,
+		arg.Email,
+		arg.Name,
+		arg.PictureUrl,
+	)
+	return err
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE users SET email = ?1, name = ?2, picture_url = ?3 WHERE text_id = ?4
+`
+
+type UpdateUserParams struct {
+	Email      string
+	Name       string
+	PictureUrl string
+	TextID     string
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
+		arg.Email,
+		arg.Name,
+		arg.PictureUrl,
+		arg.TextID,
+	)
+	return err
+}
+
+const userByTextId = `-- name: UserByTextId :one
+SELECT id, text_id, email, name, picture_url, deleted FROM users WHERE text_id = ?1 LIMIT 1
+`
+
+func (q *Queries) UserByTextId(ctx context.Context, textID string) (User, error) {
+	row := q.db.QueryRowContext(ctx, userByTextId, textID)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.TextID,
 		&i.Email,
+		&i.Name,
+		&i.PictureUrl,
 		&i.Deleted,
 	)
 	return i, err

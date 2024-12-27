@@ -4,20 +4,27 @@
 // source: types.go
 
 export interface ErrorResponse {
-	errorMessage: string;
+  errorMessage: string;
 }
 export interface AuthRequest {
-	username: string;
+  username: string;
 }
 export interface AuthResponse {
-	token?: string;
-	ErrorResponse: ErrorResponse;
+  token?: string;
+  ErrorResponse: ErrorResponse;
 }
-export interface Project {
-	id: number /* int */;
-	name: string;
-	description: string;
+export interface Credentials {
+  token: string;
+}
+export interface Event {
+  id: string;
+  name: string;
+  description: string;
+}
+export interface DashboardRequest {
+  Credentials: Credentials;
 }
 export interface DashboardResponse {
-	projects: Project[];
+  events: Event[];
+  ErrorResponse: ErrorResponse;
 }

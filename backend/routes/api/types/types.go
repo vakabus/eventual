@@ -13,12 +13,21 @@ type AuthResponse struct {
 	ErrorResponse
 }
 
-type Project struct {
-	ID          int    `json:"id"`
+type Credentials struct {
+	Token string `json:"token"`
+}
+
+type Event struct {
+	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
+type DashboardRequest struct {
+	Credentials
+}
+
 type DashboardResponse struct {
-	Projects []Project `json:"projects"`
+	Events []Event `json:"events"`
+	ErrorResponse
 }
