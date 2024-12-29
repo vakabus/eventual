@@ -4,7 +4,6 @@ import (
 	"embed"
 	"events/backend/config"
 	"events/backend/routes"
-	"events/backend/routes/auth"
 	"io/fs"
 	"log"
 	"mime"
@@ -42,7 +41,7 @@ func staticHandler() http.Handler {
 	if os.Getenv("DEV") == "" {
 		// if not set or empty, serve static content from embeded fs
 		sub, _ := fs.Sub(staticFiles, "static")
-		return http.StripPrefix("/static", http.FileServer(htmlDir{http.FS(sub)}))
+		return http.StripPrefix("/static", http.FileServer(http.FS(sub)))
 	} else {
 		// else serve by reverse proxying to vite dev server
 		url, err := url.Parse("http://localhost:5173")
@@ -67,14 +66,7 @@ func main() {
 	router := http.NewServeMux()
 	routes.AddRoutes(router)
 	router.Handle("/static/", staticHandler())
-	router.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
-		_, err := auth.GetUserFromCookies(r)
-		if err != nil {
-			http.Redirect(w, r, "/static/", http.StatusTemporaryRedirect)
-		} else {
-			http.Redirect(w, r, "/static/dashboard", http.StatusTemporaryRedirect)
-		}
-	})
+	router.Handle("/{$}", http.RedirectHandler("/static/", http.StatusTemporaryRedirect))
 
 	log.Println("Server listening on http://127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", router))

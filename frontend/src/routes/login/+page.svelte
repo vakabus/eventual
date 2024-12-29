@@ -1,39 +1,21 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { login as apiLogin } from '$lib/api';
-	import { base } from '$app/paths';
-	import { type AuthResponse, type ErrorResponse } from '$lib/types';
-	import { presentNorEmpty } from '$lib/utils';
-
-	let state: 'input' | 'processing' = $state('input');
-	let username = $state('');
-	let loginResponse: AuthResponse | ErrorResponse = $state(undefined);
-
-	async function login(event: Event) {
-		// Prevent the form from submitting normally
-		event.preventDefault();
-
-		state = 'processing';
-		loginResponse = await apiLogin(username);
-		if (presentNorEmpty(loginResponse, 'token')) {
-			localStorage.setItem('token', loginResponse.token);
-			await goto(`${base}/dashboard`);
-		} else {
-			state = 'input';
-		}
+	function googleLogin() {
+		// redirect to our Google login endpoint, JS because
+		// Svelte likes to control links without domain
+		window.location.pathname = '/auth/google';
 	}
 </script>
 
-<main class="container mx-auto px-6 py-12">
-	{#if state == 'input'}
-		<form action="#" onsubmit={login}>
-			<input type="text" bind:value={username} placeholder="Username" />
-			<input type="submit" value="Login" />
-			{#if loginResponse != null && presentNorEmpty(loginResponse, 'errorMessage')}
-				<div>{loginResponse.errorMessage}</div>
-			{/if}
-		</form>
-	{:else if state == 'processing'}
-		<div>Processing authentication...</div>
-	{/if}
-</main>
+<div>
+	<h1 class="mb-4 text-4xl font-extrabold">Eventovátko</h1>
+	<p class="mb-2">
+		<span class="font-bold">Aktuálně je nástroj ve vývoji a obsahuje nejspíš spoustu bugů.</span> Webová
+		appka na zjednodušení organizování akcí.
+	</p>
+	<button
+		onclick={googleLogin}
+		type="button"
+		class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+		>Přihlásit se přes Google účet</button
+	>
+</div>

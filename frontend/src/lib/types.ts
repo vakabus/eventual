@@ -4,19 +4,19 @@
 // source: types.go
 
 export interface ErrorResponse {
-	errorMessage: string;
+  errorMessage: string;
 }
 export interface Event {
-	id: string;
-	name: string;
-	description: string;
+  id: string;
+  name: string;
+  description: string;
 }
 export interface EventResponse {
-	events: Event[];
-	ErrorResponse: ErrorResponse;
+  events: Event[];
+  ErrorResponse: ErrorResponse;
 }
 export interface Profile {
-	name: string;
-	email: string;
-	pictureURL: string;
+  name: string;
+  email: string;
+  pictureURL: string;
 }

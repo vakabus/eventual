@@ -5,6 +5,7 @@ run:
     cd backend
     go generate ./...
     DEV=true go run github.com/air-verse/air@latest &
+    trap "killall air" EXIT
 
     cd ../frontend
     npm run dev
