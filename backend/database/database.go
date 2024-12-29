@@ -33,7 +33,22 @@ func OpenMemory() *DB {
 	return &DB{gen.New(db)}
 }
 
-var database *DB = OpenMemory()
+func Open(filename string) *DB {
+	db, err := sql.Open("sqlite3", filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// run migrations
+	err = initMigrator().Migrate(db)
+	if err != nil {
+		log.Fatal("migrations failed:", err)
+	}
+
+	return &DB{gen.New(db)}
+}
+
+var database *DB = Open("data.db")
 
 func Default() *DB {
 	return database

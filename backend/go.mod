@@ -3,6 +3,7 @@ module events/backend
 go 1.23.3
 
 require (
+	github.com/lopezator/migrator v0.3.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/spf13/viper v1.19.0
 	golang.org/x/oauth2 v0.24.0

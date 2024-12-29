@@ -3,8 +3,8 @@ run:
     set -e
 
     cd backend
-    go generate
-    DEV=true go run . &
+    go generate ./...
+    DEV=true go run github.com/air-verse/air@latest &
 
     cd ../frontend
     npm run dev

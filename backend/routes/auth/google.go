@@ -23,7 +23,6 @@ var (
 		},
 		Endpoint: google.Endpoint,
 	}
-	googleCookieName = "google-access-token"
 )
 
 func initializeGoogleOAuth() {
@@ -45,10 +44,10 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	code := r.FormValue("code")
 	if code == "" {
-		w.Write([]byte("Code Not Found to provide AccessToken..\n"))
+		_, _ = w.Write([]byte("Code Not Found to provide AccessToken..\n"))
 		reason := r.FormValue("error_reason")
 		if reason == "user_denied" {
-			w.Write([]byte("User has denied Permission.."))
+			_, _ = w.Write([]byte("User has denied permission.."))
 		}
 		// User has denied access..
 		// http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -74,10 +73,16 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	// Once we have all the data, store it in the database
 	userID := fmt.Sprintf("google:%s", userInfo.Email)
-	upsertUser(r.Context(), userID, userInfo.Email, userInfo.Name, userInfo.Picture)
+	user, err := upsertUser(r.Context(), userID, userInfo.Email, userInfo.Name, userInfo.Picture)
+	if err != nil {
+		log.Printf("ERROR: upsertUser: %v", err)
+		return
+	}
 
-	// And redirect to the dashboard
-	w.Header().Add("Set-Cookie", fmt.Sprintf("%s=%s; HttpOnly; SameSite=strict;", googleCookieName, token.AccessToken))
-	registerSession(token.AccessToken, userID)
-	http.Redirect(w, r, "/static/dashboard", http.StatusTemporaryRedirect)
+	// And redirect to the main page
+	err = AddSessionCookie(r.Context(), w, user)
+	if err != nil {
+		log.Printf("ERROR: AddSessionCookie: %v", err)
+	}
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

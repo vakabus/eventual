@@ -8,5 +8,7 @@ func Server() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/google", handleGoogleLogin)
 	mux.HandleFunc("/google-callback", handleGoogleCallback)
+
+	mux.HandleFunc("/logout", handleLogout)
 	return mux
 }

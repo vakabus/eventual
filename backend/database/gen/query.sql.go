@@ -9,6 +9,44 @@ import (
 	"context"
 )
 
+const addEventOrganizer = `-- name: AddEventOrganizer :exec
+INSERT INTO event_organizers ( event_id, user_id ) VALUES ( ?1, ?2 )
+`
+
+type AddEventOrganizerParams struct {
+	EventID int64
+	UserID  int64
+}
+
+func (q *Queries) AddEventOrganizer(ctx context.Context, arg AddEventOrganizerParams) error {
+	_, err := q.db.ExecContext(ctx, addEventOrganizer, arg.EventID, arg.UserID)
+	return err
+}
+
+const addSession = `-- name: AddSession :exec
+INSERT INTO sessions ( user_id, token, expires_at ) VALUES ( ?1, ?2, ?3 )
+`
+
+type AddSessionParams struct {
+	UserID    int64
+	Token     string
+	ExpiresAt string
+}
+
+func (q *Queries) AddSession(ctx context.Context, arg AddSessionParams) error {
+	_, err := q.db.ExecContext(ctx, addSession, arg.UserID, arg.Token, arg.ExpiresAt)
+	return err
+}
+
+const cleanSessions = `-- name: CleanSessions :exec
+DELETE FROM sessions WHERE expires_at < datetime('now')
+`
+
+func (q *Queries) CleanSessions(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, cleanSessions)
+	return err
+}
+
 const listEvents = `-- name: ListEvents :many
 SELECT id, name, description, deleted FROM events WHERE deleted = FALSE AND id IN (SELECT event_id FROM event_organizers WHERE user_id = ?1)
 `
@@ -41,8 +79,24 @@ func (q *Queries) ListEvents(ctx context.Context, userID int64) ([]Event, error)
 	return items, nil
 }
 
-const newUser = `-- name: NewUser :exec
-INSERT INTO users ( text_id, email, name, picture_url ) VALUES ( ?1, ?2, ?3, ?4 )
+const newEvent = `-- name: NewEvent :one
+INSERT INTO events ( name, description ) VALUES ( ?1, ?2 ) RETURNING id
+`
+
+type NewEventParams struct {
+	Name        string
+	Description string
+}
+
+func (q *Queries) NewEvent(ctx context.Context, arg NewEventParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, newEvent, arg.Name, arg.Description)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const newUser = `-- name: NewUser :one
+INSERT INTO users ( text_id, email, name, picture_url ) VALUES ( ?1, ?2, ?3, ?4 ) RETURNING id, text_id, email, name, picture_url, deleted
 `
 
 type NewUserParams struct {
@@ -52,18 +106,27 @@ type NewUserParams struct {
 	PictureUrl string
 }
 
-func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) error {
-	_, err := q.db.ExecContext(ctx, newUser,
+func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, newUser,
 		arg.TextID,
 		arg.Email,
 		arg.Name,
 		arg.PictureUrl,
 	)
-	return err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.TextID,
+		&i.Email,
+		&i.Name,
+		&i.PictureUrl,
+		&i.Deleted,
+	)
+	return i, err
 }
 
-const updateUser = `-- name: UpdateUser :exec
-UPDATE users SET email = ?1, name = ?2, picture_url = ?3 WHERE text_id = ?4
+const updateUser = `-- name: UpdateUser :one
+UPDATE users SET email = ?1, name = ?2, picture_url = ?3 WHERE text_id = ?4 RETURNING id, text_id, email, name, picture_url, deleted
 `
 
 type UpdateUserParams struct {
@@ -73,14 +136,41 @@ type UpdateUserParams struct {
 	TextID     string
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.Email,
 		arg.Name,
 		arg.PictureUrl,
 		arg.TextID,
 	)
-	return err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.TextID,
+		&i.Email,
+		&i.Name,
+		&i.PictureUrl,
+		&i.Deleted,
+	)
+	return i, err
+}
+
+const userBySession = `-- name: UserBySession :one
+SELECT id, text_id, email, name, picture_url, deleted FROM users WHERE id = (SELECT user_id FROM sessions WHERE token = ?1 AND expires_at > datetime('now')) LIMIT 1
+`
+
+func (q *Queries) UserBySession(ctx context.Context, token string) (User, error) {
+	row := q.db.QueryRowContext(ctx, userBySession, token)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.TextID,
+		&i.Email,
+		&i.Name,
+		&i.PictureUrl,
+		&i.Deleted,
+	)
+	return i, err
 }
 
 const userByTextId = `-- name: UserByTextId :one

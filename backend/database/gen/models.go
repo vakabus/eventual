@@ -34,6 +34,13 @@ type Participant struct {
 	Email   string
 }
 
+type Session struct {
+	ID        int64
+	UserID    int64
+	Token     string
+	ExpiresAt string
+}
+
 type User struct {
 	ID         int64
 	TextID     string
