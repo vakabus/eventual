@@ -13,8 +13,8 @@
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",
-		"@grpc/proto-loader": "^0.7.13",
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-node": "^5.2.11",
 		"@sveltejs/adapter-static": "^3.0.6",
 		"@sveltejs/kit": "^2.9.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
@@ -25,10 +25,6 @@
 		"globals": "^15.0.0",
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
-		"protoc-gen-grpc": "^2.0.4",
-		"protoc-gen-grpc-web": "^1.5.0",
-		"protoc-gen-js": "^3.21.4",
-		"protoc-gen-ts": "^0.8.7",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^3.4.9",
@@ -37,7 +33,6 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
-		"google-protobuf": "^3.21.4",
-		"grpc-web": "^1.5.0"
+		"marked": "^15.0.4"
 	}
 }

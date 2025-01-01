@@ -28,15 +28,15 @@ func Event(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		listEvents(w, r, user)
+		getEvents(w, r, user)
 	} else if r.Method == http.MethodPost {
-		createEvent(w, r, user)
+		postEvent(w, r, user)
 	} else {
 		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func listEvents(w http.ResponseWriter, r *http.Request, user *gen.User) {
+func getEvents(w http.ResponseWriter, r *http.Request, user *gen.User) {
 	ctx := r.Context()
 	dbEvents, err := database.Default().ListEvents(ctx, user.ID)
 	if err != nil {
@@ -45,6 +45,7 @@ func listEvents(w http.ResponseWriter, r *http.Request, user *gen.User) {
 		return
 	}
 
+	// transform database events to API events
 	var events []types.Event
 	for _, event := range dbEvents {
 		events = append(events, types.Event{
@@ -54,6 +55,19 @@ func listEvents(w http.ResponseWriter, r *http.Request, user *gen.User) {
 		})
 	}
 
+	// optionally filter by event ID
+	eventID := r.URL.Query().Get("id")
+	if eventID != "" {
+		var filteredEvents []types.Event
+		for _, event := range events {
+			if event.ID == eventID {
+				filteredEvents = append(filteredEvents, event)
+			}
+		}
+		events = filteredEvents
+	}
+
+	// write response
 	err = json.NewEncoder(w).Encode(types.EventResponse{
 		Events: events,
 	})
@@ -62,7 +76,7 @@ func listEvents(w http.ResponseWriter, r *http.Request, user *gen.User) {
 	}
 }
 
-func createEvent(w http.ResponseWriter, r *http.Request, user *gen.User) {
+func postEvent(w http.ResponseWriter, r *http.Request, user *gen.User) {
 	ctx := r.Context()
 	var req types.Event
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -71,6 +85,7 @@ func createEvent(w http.ResponseWriter, r *http.Request, user *gen.User) {
 		return
 	}
 
+	// Add the given event to the database
 	eventID, err := database.Default().NewEvent(ctx, gen.NewEventParams{
 		Name:        req.Name,
 		Description: req.Description,
@@ -90,10 +105,12 @@ func createEvent(w http.ResponseWriter, r *http.Request, user *gen.User) {
 		return
 	}
 
+	// write response
 	w.WriteHeader(http.StatusCreated)
-
-	// Return a new list of all events
-	listEvents(w, r, user)
+	err = json.NewEncoder(w).Encode(types.Event{ID: fmt.Sprint(eventID), Name: req.Name, Description: req.Description})
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
+	}
 }
 
 func Profile(w http.ResponseWriter, r *http.Request) {

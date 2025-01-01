@@ -1,5 +1,5 @@
 // This is required because of https://svelte.dev/docs/kit/adapter-static
-export const prerender = true;
+// export const prerender = true;
 
 // This makes the URL's look nicer
-export const trailingSlash = 'always';
+// export const trailingSlash = 'always';

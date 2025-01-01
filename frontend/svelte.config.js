@@ -10,6 +10,9 @@ const config = {
 		runes: true
 	},
 	kit: {
+		router: {
+			type: 'hash'
+		},
 		adapter: adapter({
 			// default options are shown. On some platforms
 			// these options are set automatically — see below
@@ -20,7 +23,7 @@ const config = {
 			strict: true
 		}),
 		paths: {
-			base: '/static',
+			base: '/app',
 			relative: true
 		}
 	}
