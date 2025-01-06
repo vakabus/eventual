@@ -1,4 +1,4 @@
-import type { Event, EventResponse } from '$lib/types';
+import type { Event } from '$lib/types';
 import { error } from '@sveltejs/kit';
 
 export type EventData = {
@@ -11,8 +11,8 @@ export async function load({ params, fetch }): Promise<EventData> {
 		error(400, 'No event id provided');
 	}
 
-	const response = await fetch(`/api/event?id=${eventID}`);
-	const event = ((await response.json()) as EventResponse).events[0];
+	const response = await fetch(`/api/event/${eventID}`);
+	const event: Event = await response.json();
 
 	if (!response.ok) {
 		error(

@@ -11,6 +11,12 @@
 	<h1 class="text-2xl">{event.name}</h1>
 </header>
 
-<section>
-	{@render children()}
-</section>
+<div class="flex flex-row">
+	<nav class="max-w-fit p-2 me-4 bg-slate-400">
+		<a href="#/event/{data.event.id}/edit" class="block">Upravit událost</a>
+		<a href="#/event/{data.event.id}/participant" class="block">Účastníci</a>
+	</nav>
+	<section>
+		{@render children()}
+	</section>	
+</div>

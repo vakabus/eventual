@@ -14,4 +14,5 @@
 	});
 </script>
 
-<p bind:this={content}></p>
+<!-- Note: we use tailwind/typography styling for the markdown -->
+<p bind:this={content} class="prose"></p>

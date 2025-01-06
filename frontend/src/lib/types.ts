@@ -11,12 +11,21 @@ export interface Event {
   name: string;
   description: string;
 }
-export interface EventResponse {
-  events: Event[];
-  ErrorResponse: ErrorResponse;
-}
+export type Events = Event[];
 export interface Profile {
   name: string;
   email: string;
   pictureURL: string;
 }
+export interface Organizer {
+  id: string;
+  name: string;
+  email: string;
+}
+export type Organizers = Organizer[];
+export interface Participant {
+  id: string;
+  name?: string;
+  email: string;
+}
+export type Participants = Participant[];

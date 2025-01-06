@@ -30,9 +30,9 @@
 	>
 </div>
 
-{#if events.events != null && events.events.length > 0}
+{#if events != null && events.length > 0}
 	<div class="flex flex-wrap flex-row gap-4">
-		{#each events.events as event}
+		{#each events as event}
 			<a
 				class="block max-w-80 min-w-52 rounded overflow-hidden shadow-lg"
 				href="#/event/{event.id}"

@@ -19,6 +19,7 @@ type Event struct {
 	ID          int64
 	Name        string
 	Description string
+	InviteCode  string
 	Deleted     sql.NullInt64
 }
 
@@ -32,6 +33,7 @@ type Participant struct {
 	ID      int64
 	EventID int64
 	Email   string
+	Name    sql.NullString
 }
 
 type Session struct {

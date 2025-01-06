@@ -1,7 +1,7 @@
-import type { EventResponse, Profile } from '$lib/types';
+import type { Profile, Event } from '$lib/types';
 
-export async function load({ fetch }): Promise<{ events: EventResponse; profile: Profile }> {
-	async function fetchEvents(): Promise<EventResponse> {
+export async function load({ fetch }): Promise<{ events: Event[]; profile: Profile }> {
+	async function fetchEvents(): Promise<Event[]> {
 		return (await fetch('/api/event')).json();
 	}
 

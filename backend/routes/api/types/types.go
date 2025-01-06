@@ -10,13 +10,26 @@ type Event struct {
 	Description string `json:"description"`
 }
 
-type EventResponse struct {
-	Events []Event `json:"events"`
-	ErrorResponse
-}
+type Events []Event
 
 type Profile struct {
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	PictureURL string `json:"pictureURL"`
 }
+
+type Organizer struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type Organizers []Organizer
+
+type Participant struct {
+	ID    string `json:"id"`
+	Name  string `json:"name,omitempty"`
+	Email string `json:"email"`
+}
+
+type Participants []Participant

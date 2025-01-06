@@ -13,6 +13,7 @@ CREATE TABLE events (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
+    invite_code TEXT NOT NULL,
     deleted INTEGER DEFAULT FALSE
 );
 
@@ -29,6 +30,7 @@ CREATE TABLE participants (
     id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL,
     email TEXT NOT NULL,
+    name TEXT,
 
     FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE
 );

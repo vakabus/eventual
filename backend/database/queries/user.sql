@@ -15,14 +15,3 @@ DELETE FROM sessions WHERE expires_at < datetime('now');
 
 -- name: UserBySession :one
 SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE token = :token AND expires_at > datetime('now')) LIMIT 1;
-
-
-
--- name: ListEvents :many
-SELECT * FROM events WHERE deleted = FALSE AND id IN (SELECT event_id FROM event_organizers WHERE user_id = :user_id);
-
--- name: NewEvent :one
-INSERT INTO events ( name, description ) VALUES ( :name, :description ) RETURNING id;
-
--- name: AddEventOrganizer :exec
-INSERT INTO event_organizers ( event_id, user_id ) VALUES ( :event_id, :user_id );

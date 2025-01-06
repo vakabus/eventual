@@ -1,3 +1,7 @@
+build:
+    cd backend && go generate ./...
+    cd backend && go build
+
 run:
     #!/bin/bash
     set -e
@@ -17,3 +21,6 @@ lint:
 format:
     cd frontend && npm run format
     cd backend && go fmt ./...
+
+sqlc:
+    cd backend && go generate ./database
