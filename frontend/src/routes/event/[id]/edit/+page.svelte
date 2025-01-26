@@ -7,7 +7,7 @@
     let { data }: { data: EventData } = $props()
     let event: Event = $derived(data.event)
 	let updating = $state(false);
-	let editor: EventEditor
+	let editor: EventEditor = $state();
 
 	async function updateEvent() {
         updating = true

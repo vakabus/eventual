@@ -30,10 +30,13 @@ DELETE FROM event_organizers WHERE event_id = :event_id AND user_id = :user_id;
 
 
 -- name: AddParticipant :one
-INSERT INTO participants ( event_id, email ) VALUES ( :event_id, :email ) RETURNING *;
+INSERT INTO participants ( event_id, email, name) VALUES ( :event_id, :email, :name ) RETURNING *;
 
 -- name: Participants :many
 SELECT * FROM participants WHERE event_id = :event_id;
 
 -- name: RemoveParticipant :exec
-DELETE FROM participants WHERE id = :id;
+DELETE FROM participants WHERE id = :id and event_id = :event_id;
+
+-- name: UpdateParticipant :one
+UPDATE participants SET email = :email, name = :name WHERE id = :id and event_id = :event_id RETURNING *;

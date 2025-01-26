@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"events/backend/database"
 	"events/backend/database/gen"
@@ -281,8 +282,42 @@ func EventParticipants(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		getParticipants(w, r, user, event_id)
+	} else if r.Method == http.MethodPost {
+		postParticipants(w, r, user, event_id)
 	} else {
 		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// Add a new participant
+func postParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, event_id int64) {
+	var req types.Participant
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	participant, err := database.Default().AddParticipant(ctx, gen.AddParticipantParams{
+		Name:    sql.NullString{Valid: true, String: req.Name},
+		Email:   req.Email,
+		EventID: event_id,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(types.Participant{
+		ID:    fmt.Sprint(participant.ID),
+		Name:  participant.Name.String,
+		Email: participant.Email,
+	})
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
 	}
 }
 
@@ -296,7 +331,7 @@ func getParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, eve
 	}
 
 	// transform database participants to API participants
-	var parts []types.Participant
+	var parts = make([]types.Participant, 0, len(participants))
 	for _, part := range participants {
 		parts = append(parts, types.Participant{
 			ID:    fmt.Sprint(part.ID),
@@ -331,14 +366,54 @@ func EventParticipant(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodDelete {
 		deleteParticipant(w, r, user, event_id, participant_id)
+	} else if r.Method == http.MethodPost {
+		postParticipant(w, r, user, event_id, participant_id)
 	} else {
 		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
+func postParticipant(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, participant_id int64) {
+	// read request body
+	ctx := r.Context()
+	var req types.Participant
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// update the DB
+	participant, err := database.Default().UpdateParticipant(ctx, gen.UpdateParticipantParams{
+		ID:      participant_id,
+		Name:    sql.NullString{Valid: true, String: req.Name},
+		Email:   req.Email,
+		EventID: event_id,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	// write response
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(types.Participant{
+		ID:    fmt.Sprint(participant.ID),
+		Name:  participant.Name.String,
+		Email: participant.Email,
+	})
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
+	}
+}
+
 func deleteParticipant(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, participant_id int64) {
 	ctx := r.Context()
-	err := database.Default().RemoveParticipant(ctx, participant_id)
+	err := database.Default().RemoveParticipant(ctx, gen.RemoveParticipantParams{
+		EventID: event_id,
+		ID:      participant_id,
+	})
 	if err != nil {
 		log.Printf("database error: %v", err)
 		errorJson(w, "database error", http.StatusInternalServerError)

@@ -1,29 +1,47 @@
 <script lang="ts">
-    import { RevoGrid, type ColumnRegular } from '@revolist/svelte-datagrid';
-    const source = [
+	import { RevoGrid, type AfterEditEvent, type BeforeSaveDataDetails, type ColumnRegular } from '@revolist/svelte-datagrid';
+	import { after, before } from 'lodash';
+	
+  let { data } = $props()
+  let participants = $derived(data.participants)
+
+
+	const columns: ColumnRegular[] = [
     {
-      name: '1',
-      details: 'Item 1',
-    },
-    {
-      name: '2',
-      details: 'Item 2',
-    },
-  ];
-    const columns: ColumnRegular[] = [
-    {
-      prop: 'name',
-      name: 'First',
-      cellTemplate(h, { value }) {
-        return h('span', { style: { background: 'red' } }, value);
+      prop: '',
+      size: 50,
+      cellTemplate(h, {rowIndex}) {
+        return h('span', { onclick: async () => { await participants.delete(rowIndex) }}, "🧨");
       }
     },
     {
-      prop: 'details',
-      name: 'Second',
+      prop: 'id',
+      name: 'ID',
+      readonly: true,
+      sortable: true,
     },
-  ];
+		{
+			prop: 'name',
+			name: 'Jméno',
+      sortable: true,
+      editable: true,
+		},
+		{
+			prop: 'email',
+			name: 'Email',
+      sortable: true,
+      editable: true,
+		}
+	];
+
+  async function afteredit(ev: BeforeSaveDataDetails) {
+    await participants.notifyUpdate(ev.detail.rowIndex)
+  }
+
+  async function add(ev: Event) {
+    await participants.addNew()
+  }
 </script>
 
-
-<RevoGrid {source} {columns}></RevoGrid>
+<RevoGrid source={participants.get()} columns={columns} resize={true} theme="material" on:afteredit={afteredit}></RevoGrid>
+<button onclick={add}>Přidat účastníka</button>

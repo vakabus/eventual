@@ -35,6 +35,10 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@revolist/revogrid": "^4.11.18",
+		"@stencil/store": "^2.0.16",
+		"@types/lodash": "^4.17.14",
+		"lodash": "^4.17.21",
 		"marked": "^15.0.4"
 	}
 }
