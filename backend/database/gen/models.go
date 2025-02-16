@@ -11,7 +11,7 @@ import (
 type EmailTemplate struct {
 	ID      int64
 	EventID int64
-	Subject string
+	Name    string
 	Body    string
 }
 

@@ -38,7 +38,7 @@ CREATE TABLE participants (
 CREATE TABLE email_templates (
     id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL,
-    subject TEXT NOT NULL,
+    name TEXT NOT NULL,
     body TEXT NOT NULL,
 
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { Event } from '$lib/types';
-	let { event }: {event: Event} = $props();
+	let { event }: { event: Event } = $props();
 
 	export async function pushUpdate() {
 		const response = await fetch(`/api/event/${event.id}`, {
-			method: "POST",
+			method: 'POST',
 			body: JSON.stringify(event)
-		})
-		if (!response.ok) console.error(response)
+		});
+		if (!response.ok) console.error(response);
 	}
 
 	export async function createEvent(): Promise<Event> {
@@ -21,11 +21,10 @@
 				description: event.description
 			})
 		});
-		if (response.ok)
-			return await response.json()
+		if (response.ok) return await response.json();
 		else {
-			console.error(response)
-			throw "error"
+			console.error(response);
+			throw 'error';
 		}
 	}
 </script>

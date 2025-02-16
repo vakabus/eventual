@@ -23,6 +23,8 @@ func Server() http.Handler {
 	mux.HandleFunc("/event/{event_id}/organizer/{org_id}", EventOrganizer)
 	mux.HandleFunc("/event/{event_id}/participant", EventParticipants)
 	mux.HandleFunc("/event/{event_id}/participant/{participant_id}", EventParticipant)
+	mux.HandleFunc("/event/{event_id}/template", EventTemplates)
+	mux.HandleFunc("/event/{event_id}/template/{template_id}", EventTemplate)
 	mux.HandleFunc("/profile", Profile)
 
 	return mux
@@ -492,6 +494,171 @@ func deleteOrganizer(w http.ResponseWriter, r *http.Request, user *gen.User, eve
 	err := database.Default().RemoveEventOrganizer(ctx, gen.RemoveEventOrganizerParams{
 		EventID: event_id,
 		UserID:  org_id,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func EventTemplates(w http.ResponseWriter, r *http.Request) {
+	user, event_id, errorWritten := userAndEvent(r, w)
+	if errorWritten {
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		getTemplates(w, r, user, event_id)
+	} else if r.Method == http.MethodPost {
+		postTemplates(w, r, user, event_id)
+	} else {
+		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func postTemplates(w http.ResponseWriter, r *http.Request, user *gen.User, event_id int64) {
+	ctx := r.Context()
+	var req types.Template
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	template, err := database.Default().AddTemplate(ctx, gen.AddTemplateParams{
+		EventID: event_id,
+		Name:    req.Name,
+		Body:    req.Body,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(types.Template{
+		ID:   fmt.Sprint(template.ID),
+		Name: template.Name,
+		Body: template.Body,
+	})
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
+	}
+}
+
+func getTemplates(w http.ResponseWriter, r *http.Request, user *gen.User, event_id int64) {
+	ctx := r.Context()
+	templates, err := database.Default().Templates(ctx, event_id)
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	// transform database templates to API templates
+	tpls := make([]types.Template, 0)
+	for _, tpl := range templates {
+		tpls = append(tpls, types.Template{
+			ID:   fmt.Sprint(tpl.ID),
+			Name: tpl.Name,
+			Body: tpl.Body,
+		})
+	}
+
+	// write response
+	err = json.NewEncoder(w).Encode(tpls)
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
+	}
+}
+
+func EventTemplate(w http.ResponseWriter, r *http.Request) {
+	user, event_id, errorWritten := userAndEvent(r, w)
+	if errorWritten {
+		return
+	}
+
+	template_id_str := r.PathValue("template_id")
+	if template_id_str == "" {
+		errorJson(w, "missing template_id", http.StatusBadRequest)
+		return
+	}
+	template_id, err := strconv.ParseInt(template_id_str, 10, 64)
+	if err != nil {
+		errorJson(w, "invalid template_id", http.StatusBadRequest)
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		getTemplate(w, r, user, event_id, template_id)
+	} else if r.Method == http.MethodPost {
+		postTemplate(w, r, user, event_id, template_id)
+	} else if r.Method == http.MethodDelete {
+		deleteTemplate(w, r, user, event_id, template_id)
+	} else {
+		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func getTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
+	ctx := r.Context()
+	template, err := database.Default().Template(ctx, gen.TemplateParams{
+		ID:      template_id,
+		EventID: event_id,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	// write response
+	err = json.NewEncoder(w).Encode(types.Template{
+		ID:   fmt.Sprint(template.ID),
+		Name: template.Name,
+		Body: template.Body,
+	})
+	if err != nil {
+		log.Println("ERROR: encoding response:", err)
+	}
+}
+
+func postTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
+	// parse request
+	ctx := r.Context()
+	var req types.Template
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// database query
+	err = database.Default().UpdateTemplate(ctx, gen.UpdateTemplateParams{
+		ID:      template_id,
+		EventID: event_id,
+		Name:    req.Name,
+		Body:    req.Body,
+	})
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	// write response
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func deleteTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
+	ctx := r.Context()
+	err := database.Default().RemoveTemplate(ctx, gen.RemoveTemplateParams{
+		EventID: event_id,
+		ID:      template_id,
 	})
 	if err != nil {
 		log.Printf("database error: %v", err)

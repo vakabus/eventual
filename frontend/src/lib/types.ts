@@ -4,28 +4,34 @@
 // source: types.go
 
 export interface ErrorResponse {
-  errorMessage: string;
+	errorMessage: string;
 }
 export interface Event {
-  id: string;
-  name: string;
-  description: string;
+	id: string;
+	name: string;
+	description: string;
 }
 export type Events = Event[];
 export interface Profile {
-  name: string;
-  email: string;
-  pictureURL: string;
+	name: string;
+	email: string;
+	pictureURL: string;
 }
 export interface Organizer {
-  id: string;
-  name: string;
-  email: string;
+	id: string;
+	name: string;
+	email: string;
 }
 export type Organizers = Organizer[];
 export interface Participant {
-  id: string;
-  name?: string;
-  email: string;
+	id: string;
+	name?: string;
+	email: string;
 }
 export type Participants = Participant[];
+export interface Template {
+	id: string;
+	name: string;
+	body: string;
+}
+export type Templates = Template[];

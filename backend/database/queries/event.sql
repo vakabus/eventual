@@ -40,3 +40,19 @@ DELETE FROM participants WHERE id = :id and event_id = :event_id;
 
 -- name: UpdateParticipant :one
 UPDATE participants SET email = :email, name = :name WHERE id = :id and event_id = :event_id RETURNING *;
+
+
+-- name: AddTemplate :one
+INSERT INTO email_templates ( event_id, name, body ) VALUES ( :event_id, :name, :body ) RETURNING *;
+
+-- name: UpdateTemplate :exec
+UPDATE email_templates SET name = :name, body = :body WHERE id = :id AND event_id = :event_id;
+
+-- name: RemoveTemplate :exec
+DELETE FROM email_templates WHERE id = :id AND event_id = :event_id;
+
+-- name: Template :one
+SELECT * FROM email_templates WHERE id = :id AND event_id = :event_id;
+
+-- name: Templates :many
+SELECT * FROM email_templates WHERE event_id = :event_id;

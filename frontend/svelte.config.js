@@ -6,8 +6,11 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-	compilerOptions: {
-		runes: true
+	dynamicCompileOptions({ filename, compileOptions }) {
+		// Dynamically set runes mode per Svelte file
+		if (filename.startsWith('src/') && !compileOptions.runes) {
+			return { runes: true };
+		}
 	},
 	kit: {
 		router: {

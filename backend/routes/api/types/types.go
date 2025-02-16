@@ -33,3 +33,11 @@ type Participant struct {
 }
 
 type Participants []Participant
+
+type Template struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Body string `json:"body"`
+}
+
+type Templates []Template

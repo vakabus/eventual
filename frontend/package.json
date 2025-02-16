@@ -38,6 +38,8 @@
 		"@revolist/revogrid": "^4.11.18",
 		"@stencil/store": "^2.0.16",
 		"@types/lodash": "^4.17.14",
+		"carta-md": "^4.6.7",
+		"isomorphic-dompurify": "^2.20.0",
 		"lodash": "^4.17.21",
 		"marked": "^15.0.4"
 	}

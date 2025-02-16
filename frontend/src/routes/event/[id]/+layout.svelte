@@ -12,11 +12,12 @@
 </header>
 
 <div class="flex flex-row">
-	<nav class="max-w-fit p-2 me-4 bg-slate-400">
+	<nav class="max-w-fit p-2 me-4 bg-slate-400 gap-2 flex flex-col">
 		<a href="#/event/{data.event.id}/edit" class="block">Upravit událost</a>
 		<a href="#/event/{data.event.id}/participant" class="block">Účastníci</a>
+		<a href="#/event/{data.event.id}/template" class="block">Vzory mailů</a>
 	</nav>
 	<section>
 		{@render children()}
-	</section>	
+	</section>
 </div>

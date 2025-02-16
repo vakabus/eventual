@@ -7,7 +7,5 @@ export default {
 		extend: {}
 	},
 
-	plugins: [
-		require('@tailwindcss/typography'),
-	]
+	plugins: [require('@tailwindcss/typography')]
 } satisfies Config;
