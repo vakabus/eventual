@@ -29,8 +29,7 @@ CREATE TABLE event_organizers (
 CREATE TABLE participants (
     id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL,
-    email TEXT NOT NULL,
-    name TEXT,
+    json TEXT NOT NULL DEFAULT '{}', -- json
 
     FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE
 );

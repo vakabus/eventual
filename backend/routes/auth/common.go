@@ -75,7 +75,7 @@ func upsertUser(ctx context.Context, userID string, email string, name string, p
 	}
 }
 
-func newSession(ctx context.Context, user *gen.User) (string, error) {
+func NewSession(ctx context.Context, user *gen.User) (string, error) {
 	token := newToken()
 	err := database.Default().AddSession(ctx, gen.AddSessionParams{
 		Token:     token,
@@ -88,16 +88,14 @@ func newSession(ctx context.Context, user *gen.User) (string, error) {
 	return token, nil
 }
 
-var cookieName = "session-token"
-
 func AddSessionCookie(ctx context.Context, w http.ResponseWriter, user *gen.User) error {
-	token, err := newSession(ctx, user)
+	token, err := NewSession(ctx, user)
 	if err != nil {
 		return err
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     cookieName,
+		Name:     SessionCookieName,
 		Value:    token,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
@@ -108,7 +106,7 @@ func AddSessionCookie(ctx context.Context, w http.ResponseWriter, user *gen.User
 }
 
 func GetUserFromCookies(r *http.Request) (*gen.User, error) {
-	cookie, err := r.Cookie(cookieName)
+	cookie, err := r.Cookie(SessionCookieName)
 	if errors.Is(err, http.ErrNoCookie) {
 		return nil, fmt.Errorf("no cookie found")
 	}
@@ -119,7 +117,7 @@ func GetUserFromCookies(r *http.Request) (*gen.User, error) {
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     cookieName,
+		Name:     SessionCookieName,
 		Value:    "",
 		Expires:  time.Now(),
 		HttpOnly: true,

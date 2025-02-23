@@ -32,8 +32,7 @@ type EventOrganizer struct {
 type Participant struct {
 	ID      int64
 	EventID int64
-	Email   string
-	Name    sql.NullString
+	Json    string
 }
 
 type Session struct {

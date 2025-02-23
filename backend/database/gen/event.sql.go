@@ -7,7 +7,6 @@ package gen
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 )
 
@@ -42,24 +41,18 @@ func (q *Queries) AddEventOrganizerByInviteCode(ctx context.Context, arg AddEven
 }
 
 const addParticipant = `-- name: AddParticipant :one
-INSERT INTO participants ( event_id, email, name) VALUES ( ?1, ?2, ?3 ) RETURNING id, event_id, email, name
+INSERT INTO participants (event_id, json) VALUES (?1, ?2) RETURNING id, event_id, json
 `
 
 type AddParticipantParams struct {
 	EventID int64
-	Email   string
-	Name    sql.NullString
+	Json    string
 }
 
 func (q *Queries) AddParticipant(ctx context.Context, arg AddParticipantParams) (Participant, error) {
-	row := q.db.QueryRowContext(ctx, addParticipant, arg.EventID, arg.Email, arg.Name)
+	row := q.db.QueryRowContext(ctx, addParticipant, arg.EventID, arg.Json)
 	var i Participant
-	err := row.Scan(
-		&i.ID,
-		&i.EventID,
-		&i.Email,
-		&i.Name,
-	)
+	err := row.Scan(&i.ID, &i.EventID, &i.Json)
 	return i, err
 }
 
@@ -219,24 +212,24 @@ func (q *Queries) NewEvent(ctx context.Context, arg NewEventParams) (int64, erro
 }
 
 const participants = `-- name: Participants :many
-SELECT id, event_id, email, name FROM participants WHERE event_id = ?1
+SELECT id, json(json) FROM participants WHERE event_id = ?1
 `
 
-func (q *Queries) Participants(ctx context.Context, eventID int64) ([]Participant, error) {
+type ParticipantsRow struct {
+	ID   int64
+	Json interface{}
+}
+
+func (q *Queries) Participants(ctx context.Context, eventID int64) ([]ParticipantsRow, error) {
 	rows, err := q.db.QueryContext(ctx, participants, eventID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Participant
+	var items []ParticipantsRow
 	for rows.Next() {
-		var i Participant
-		if err := rows.Scan(
-			&i.ID,
-			&i.EventID,
-			&i.Email,
-			&i.Name,
-		); err != nil {
+		var i ParticipantsRow
+		if err := rows.Scan(&i.ID, &i.Json); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -383,30 +376,19 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 }
 
 const updateParticipant = `-- name: UpdateParticipant :one
-UPDATE participants SET email = ?1, name = ?2 WHERE id = ?3 and event_id = ?4 RETURNING id, event_id, email, name
+UPDATE participants SET json = ?1 WHERE id = ?2 and event_id = ?3 RETURNING id, event_id, json
 `
 
 type UpdateParticipantParams struct {
-	Email   string
-	Name    sql.NullString
+	Json    string
 	ID      int64
 	EventID int64
 }
 
 func (q *Queries) UpdateParticipant(ctx context.Context, arg UpdateParticipantParams) (Participant, error) {
-	row := q.db.QueryRowContext(ctx, updateParticipant,
-		arg.Email,
-		arg.Name,
-		arg.ID,
-		arg.EventID,
-	)
+	row := q.db.QueryRowContext(ctx, updateParticipant, arg.Json, arg.ID, arg.EventID)
 	var i Participant
-	err := row.Scan(
-		&i.ID,
-		&i.EventID,
-		&i.Email,
-		&i.Name,
-	)
+	err := row.Scan(&i.ID, &i.EventID, &i.Json)
 	return i, err
 }
 

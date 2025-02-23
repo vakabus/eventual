@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"events/backend/database"
 	"events/backend/database/gen"
@@ -301,10 +300,14 @@ func postParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, ev
 	}
 
 	ctx := r.Context()
+	jsonData, err := json.Marshal(req.Data)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
 	participant, err := database.Default().AddParticipant(ctx, gen.AddParticipantParams{
-		Name:    sql.NullString{Valid: true, String: req.Name},
-		Email:   req.Email,
 		EventID: event_id,
+		Json:    string(jsonData),
 	})
 	if err != nil {
 		log.Printf("database error: %v", err)
@@ -312,15 +315,60 @@ func postParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, ev
 		return
 	}
 
+	apiParticipant, err := toAPIType(participant)
+	if err != nil {
+		log.Printf("error converting participant to API type: %v", err)
+		errorJson(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(types.Participant{
-		ID:    fmt.Sprint(participant.ID),
-		Name:  participant.Name.String,
-		Email: participant.Email,
-	})
+	err = json.NewEncoder(w).Encode(apiParticipant)
 	if err != nil {
 		log.Println("ERROR: encoding response:", err)
 	}
+}
+
+func toDBType(p types.Participant, event_id int64) (gen.Participant, error) {
+	jsonData, err := json.Marshal(p.Data)
+	if err != nil {
+		return gen.Participant{}, err
+	}
+
+	id, err := strconv.ParseInt(p.ID, 10, 64)
+	if err != nil {
+		return gen.Participant{}, fmt.Errorf("invalid ID: %v", err)
+	}
+
+	return gen.Participant{
+		ID:      id,
+		EventID: event_id,
+		Json:    string(jsonData),
+	}, nil
+}
+
+func toAPIType(p gen.Participant) (types.Participant, error) {
+	var keyValueData map[string]string
+	err := json.Unmarshal([]byte(p.Json), &keyValueData)
+	if err != nil {
+		return types.Participant{}, fmt.Errorf("deserialization of DB JSON failed: %v", err)
+	}
+	return types.Participant{
+		ID:   fmt.Sprint(p.ID),
+		Data: keyValueData,
+	}, nil
+}
+
+func toAPIType2(p gen.ParticipantsRow) (types.Participant, error) {
+	var keyValueData map[string]string
+	err := json.Unmarshal([]byte(p.Json.(string)), &keyValueData)
+	if err != nil {
+		return types.Participant{}, fmt.Errorf("deserialization of DB JSON failed: %v", err)
+	}
+	return types.Participant{
+		ID:   fmt.Sprint(p.ID),
+		Data: keyValueData,
+	}, nil
 }
 
 func getParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, event_id int64) {
@@ -333,13 +381,17 @@ func getParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, eve
 	}
 
 	// transform database participants to API participants
-	var parts = make([]types.Participant, 0, len(participants))
+	var parts types.Participants
+	parts.Participants = make([]types.Participant, 0)
 	for _, part := range participants {
-		parts = append(parts, types.Participant{
-			ID:    fmt.Sprint(part.ID),
-			Name:  part.Name.String,
-			Email: part.Email,
-		})
+		p, err := toAPIType2(part)
+		if err != nil {
+			log.Printf("error converting participant to API type: %v", err)
+			errorJson(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		parts.Participants = append(parts.Participants, p)
 	}
 
 	// write response
@@ -386,11 +438,15 @@ func postParticipant(w http.ResponseWriter, r *http.Request, user *gen.User, eve
 	}
 
 	// update the DB
+	extraJson, err := json.Marshal(req.Data)
+	if err != nil {
+		errorJson(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
 	participant, err := database.Default().UpdateParticipant(ctx, gen.UpdateParticipantParams{
 		ID:      participant_id,
-		Name:    sql.NullString{Valid: true, String: req.Name},
-		Email:   req.Email,
 		EventID: event_id,
+		Json:    string(extraJson),
 	})
 	if err != nil {
 		log.Printf("database error: %v", err)
@@ -399,12 +455,15 @@ func postParticipant(w http.ResponseWriter, r *http.Request, user *gen.User, eve
 	}
 
 	// write response
+	apiParticipant, err := toAPIType(participant)
+	if err != nil {
+		log.Printf("error converting participant to API type: %v", err)
+		errorJson(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(types.Participant{
-		ID:    fmt.Sprint(participant.ID),
-		Name:  participant.Name.String,
-		Email: participant.Email,
-	})
+	err = json.NewEncoder(w).Encode(apiParticipant)
 	if err != nil {
 		log.Println("ERROR: encoding response:", err)
 	}

@@ -27,12 +27,13 @@ type Organizer struct {
 type Organizers []Organizer
 
 type Participant struct {
-	ID    string `json:"id"`
-	Name  string `json:"name,omitempty"`
-	Email string `json:"email"`
+	ID   string            `json:"id"`
+	Data map[string]string `json:"data"`
 }
 
-type Participants []Participant
+type Participants struct {
+	Participants []Participant `json:"participants"`
+}
 
 type Template struct {
 	ID   string `json:"id"`

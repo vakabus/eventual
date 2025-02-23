@@ -53,3 +53,7 @@ var database *DB = Open("data.db")
 func Default() *DB {
 	return database
 }
+
+func DangerousSwitchDefaultToMemory() {
+	database = OpenMemory()
+}
