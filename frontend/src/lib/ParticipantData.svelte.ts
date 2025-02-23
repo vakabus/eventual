@@ -16,7 +16,7 @@ export class ParticipantsData {
 		return this.participant;
 	}
 
-	static async init(eventID: string, fetch: typeof window.fetch): Promise<ParticipantsData> {
+	static async init(eventID: string, fetch: typeof window.fetch = window.fetch): Promise<ParticipantsData> {
 		const response = await fetch(`/api/event/${eventID}/participant`);
 		if (response.ok) {
 			const data: Participants = await response.json();
@@ -65,7 +65,6 @@ export class ParticipantsData {
 			body: JSON.stringify(this.participant[newIndex])
 		});
 		if (!response.ok) {
-			//this.delete(newIndex)
 			console.log(response);
 			error(500, 'Nepodařilo se přidat účastníka.');
 		} else {

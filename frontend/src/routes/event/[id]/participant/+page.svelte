@@ -45,7 +45,7 @@
 		}
 	];
 
-	async function afteredit(ev: BeforeSaveDataDetails) {
+	async function afteredit(ev: AfterEditEvent) {
 		await participants.notifyUpdate(ev.detail.rowIndex);
 	}
 
