@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"events/backend/database"
 	"events/backend/database/gen"
+	"events/backend/email"
 	"events/backend/routes/api/types"
 	"events/backend/routes/auth"
 	"fmt"
@@ -24,6 +25,8 @@ func Server() http.Handler {
 	mux.HandleFunc("/event/{event_id}/participant/{participant_id}", EventParticipant)
 	mux.HandleFunc("/event/{event_id}/template", EventTemplates)
 	mux.HandleFunc("/event/{event_id}/template/{template_id}", EventTemplate)
+	mux.HandleFunc("/event/{event_id}/template/{template_id}/render", EventTemplateRender)
+	mux.HandleFunc("/event/{event_id}/template/{template_id}/send", EventTemplateSend)
 	mux.HandleFunc("/profile", Profile)
 
 	return mux
@@ -665,10 +668,7 @@ func EventTemplate(w http.ResponseWriter, r *http.Request) {
 
 func getTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
 	ctx := r.Context()
-	template, err := database.Default().Template(ctx, gen.TemplateParams{
-		ID:      template_id,
-		EventID: event_id,
-	})
+	template, err := database.Default().Template(ctx, template_id)
 	if err != nil {
 		log.Printf("database error: %v", err)
 		errorJson(w, "database error", http.StatusInternalServerError)
@@ -698,10 +698,9 @@ func postTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_
 
 	// database query
 	err = database.Default().UpdateTemplate(ctx, gen.UpdateTemplateParams{
-		ID:      template_id,
-		EventID: event_id,
-		Name:    req.Name,
-		Body:    req.Body,
+		ID:   template_id,
+		Name: req.Name,
+		Body: req.Body,
 	})
 	if err != nil {
 		log.Printf("database error: %v", err)
@@ -715,10 +714,7 @@ func postTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_
 
 func deleteTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
 	ctx := r.Context()
-	err := database.Default().RemoveTemplate(ctx, gen.RemoveTemplateParams{
-		EventID: event_id,
-		ID:      template_id,
-	})
+	err := database.Default().RemoveTemplate(ctx, template_id)
 	if err != nil {
 		log.Printf("database error: %v", err)
 		errorJson(w, "database error", http.StatusInternalServerError)
@@ -726,4 +722,116 @@ func deleteTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, even
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func EventTemplateRender(w http.ResponseWriter, r *http.Request) {
+	user, event_id, errorWritten := userAndEvent(r, w)
+	if errorWritten {
+		return
+	}
+
+	template_id_str := r.PathValue("template_id")
+	if template_id_str == "" {
+		errorJson(w, "missing template_id", http.StatusBadRequest)
+		return
+	}
+	template_id, err := strconv.ParseInt(template_id_str, 10, 64)
+	if err != nil {
+		errorJson(w, "invalid template_id", http.StatusBadRequest)
+		return
+	}
+
+	if r.Method == http.MethodGet {
+		getTemplateRender(w, r, user, event_id, template_id)
+	} else {
+		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func getTemplateRender(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
+	ctx := r.Context()
+
+	// Get first participant's data
+	participants, err := database.Default().Participants(ctx, event_id)
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+	if len(participants) == 0 {
+		errorJson(w, "no participants found", http.StatusNotFound)
+		return
+	}
+
+	message, err := email.NewEmailFromDB(ctx, template_id, participants[0].ID)
+	if err != nil {
+		log.Printf("email error: %v", err)
+		errorJson(w, "email error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(message.BodyHTML()))
+}
+
+func EventTemplateSend(w http.ResponseWriter, r *http.Request) {
+	user, event_id, errorWritten := userAndEvent(r, w)
+	if errorWritten {
+		return
+	}
+
+	template_id_str := r.PathValue("template_id")
+	if template_id_str == "" {
+		errorJson(w, "missing template_id", http.StatusBadRequest)
+		return
+	}
+	template_id, err := strconv.ParseInt(template_id_str, 10, 64)
+	if err != nil {
+		errorJson(w, "invalid template_id", http.StatusBadRequest)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		sendTemplate(w, r, user, event_id, template_id)
+	} else {
+		errorJson(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func sendTemplate(w http.ResponseWriter, r *http.Request, user *gen.User, event_id, template_id int64) {
+	ctx := r.Context()
+
+	// Get first participant's data
+	participants, err := database.Default().Participants(ctx, event_id)
+	if err != nil {
+		log.Printf("database error: %v", err)
+		errorJson(w, "database error", http.StatusInternalServerError)
+		return
+	}
+	if len(participants) == 0 {
+		errorJson(w, "no participants found", http.StatusNotFound)
+		return
+	}
+
+	message, err := email.NewEmailFromDB(ctx, template_id, participants[0].ID)
+	if err != nil {
+		log.Printf("email error: %v", err)
+		errorJson(w, "email error", http.StatusInternalServerError)
+		return
+	}
+
+	cookie, err := r.Cookie(auth.GoogleOauthTokenCookieName)
+	if err != nil {
+		errorJson(w, "missing google oauth token", http.StatusUnauthorized)
+		return
+	}
+
+	err = message.SendGoogle(ctx, cookie.Value)
+	if err != nil {
+		log.Printf("email error: %v", err)
+		errorJson(w, "email error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Carta, MarkdownEditor } from 'carta-md';
-	import DOMPurify from 'isomorphic-dompurify';
 	import 'carta-md/default.css';
+	import './carta.scss';
 	import type { Template } from '$lib/types';
 
 	let { template = $bindable<Template>() } = $props();
 
 	const carta = new Carta({
-		sanitizer: (dirty) => DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } })
+		sanitizer: false,
 	});
 </script>
 
@@ -18,7 +18,7 @@
 	bind:innerHTML={template.name}
 ></h2>
 
-<MarkdownEditor {carta} bind:value={template.body} />
+<MarkdownEditor bind:value={template.body} mode="tabs" {carta} theme="default" />
 
 <style>
 	/* Or in global stylesheet */

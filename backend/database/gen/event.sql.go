@@ -211,6 +211,22 @@ func (q *Queries) NewEvent(ctx context.Context, arg NewEventParams) (int64, erro
 	return id, err
 }
 
+const participant = `-- name: Participant :one
+SELECT id, json(json) FROM participants WHERE id = ?1
+`
+
+type ParticipantRow struct {
+	ID   int64
+	Json interface{}
+}
+
+func (q *Queries) Participant(ctx context.Context, id int64) (ParticipantRow, error) {
+	row := q.db.QueryRowContext(ctx, participant, id)
+	var i ParticipantRow
+	err := row.Scan(&i.ID, &i.Json)
+	return i, err
+}
+
 const participants = `-- name: Participants :many
 SELECT id, json(json) FROM participants WHERE event_id = ?1
 `
@@ -272,16 +288,11 @@ func (q *Queries) RemoveParticipant(ctx context.Context, arg RemoveParticipantPa
 }
 
 const removeTemplate = `-- name: RemoveTemplate :exec
-DELETE FROM email_templates WHERE id = ?1 AND event_id = ?2
+DELETE FROM email_templates WHERE id = ?1
 `
 
-type RemoveTemplateParams struct {
-	ID      int64
-	EventID int64
-}
-
-func (q *Queries) RemoveTemplate(ctx context.Context, arg RemoveTemplateParams) error {
-	_, err := q.db.ExecContext(ctx, removeTemplate, arg.ID, arg.EventID)
+func (q *Queries) RemoveTemplate(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, removeTemplate, id)
 	return err
 }
 
@@ -300,16 +311,11 @@ func (q *Queries) SetInviteCode(ctx context.Context, arg SetInviteCodeParams) er
 }
 
 const template = `-- name: Template :one
-SELECT id, event_id, name, body FROM email_templates WHERE id = ?1 AND event_id = ?2
+SELECT id, event_id, name, body FROM email_templates WHERE id = ?1
 `
 
-type TemplateParams struct {
-	ID      int64
-	EventID int64
-}
-
-func (q *Queries) Template(ctx context.Context, arg TemplateParams) (EmailTemplate, error) {
-	row := q.db.QueryRowContext(ctx, template, arg.ID, arg.EventID)
+func (q *Queries) Template(ctx context.Context, id int64) (EmailTemplate, error) {
+	row := q.db.QueryRowContext(ctx, template, id)
 	var i EmailTemplate
 	err := row.Scan(
 		&i.ID,
@@ -393,22 +399,16 @@ func (q *Queries) UpdateParticipant(ctx context.Context, arg UpdateParticipantPa
 }
 
 const updateTemplate = `-- name: UpdateTemplate :exec
-UPDATE email_templates SET name = ?1, body = ?2 WHERE id = ?3 AND event_id = ?4
+UPDATE email_templates SET name = ?1, body = ?2 WHERE id = ?3
 `
 
 type UpdateTemplateParams struct {
-	Name    string
-	Body    string
-	ID      int64
-	EventID int64
+	Name string
+	Body string
+	ID   int64
 }
 
 func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) error {
-	_, err := q.db.ExecContext(ctx, updateTemplate,
-		arg.Name,
-		arg.Body,
-		arg.ID,
-		arg.EventID,
-	)
+	_, err := q.db.ExecContext(ctx, updateTemplate, arg.Name, arg.Body, arg.ID)
 	return err
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	gmail "google.golang.org/api/gmail/v1"
 	gOauth "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 )
@@ -20,6 +21,7 @@ var (
 		Scopes: []string{
 			gOauth.UserinfoEmailScope,
 			gOauth.UserinfoProfileScope,
+			gmail.GmailSendScope,
 		},
 		Endpoint: google.Endpoint,
 	}
@@ -84,5 +86,13 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("ERROR: AddSessionCookie: %v", err)
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  GoogleOauthTokenCookieName,
+		Value: token.AccessToken,
+
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+	})
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

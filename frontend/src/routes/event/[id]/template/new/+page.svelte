@@ -6,8 +6,19 @@
 	let { data } = $props();
 	let template = $state({
 		name: '(nová šablona)',
-		body: ''
-	});
+		body: `---
+To: {{ .jméno }} <{{ .email }}>
+Reply-To: kurz@psl.cz
+Subject: Úvodní informace ke kurzu
+---
+
+Ahoj {{ .oslovení }},
+
+nemohl(|a) bys prosím zkontrolovat, že slovesa mají správný rod? Jsi totiž moc šikovn(ý|á) a zvládneš to nejlépe.
+
+Díky a měj se pěkně,
+Tvoji organizátoři
+`});
 
 	async function create() {
 		var response = await fetch(`/api/event/${data.event.id}/template`, {

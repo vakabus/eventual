@@ -19,18 +19,14 @@
 					'span',
 					{
 						onclick: async () => {
-							await participants.delete(rowIndex);
+							if (confirm('Opravdu chceš smazat účastníka?')) {
+								await participants.delete(rowIndex);
+							}
 						}
 					},
 					'🧨'
 				);
 			}
-		},
-		{
-			prop: '__id__',
-			name: 'ID',
-			readonly: true,
-			sortable: true
 		},
 		...data.participants.keys.filter((key) => key !== '__id__').map((key) => ({
 			prop: key,
@@ -49,6 +45,11 @@
 
 	function addColumn() {
 		if (newColumnName.trim() === '') return;
+		if (newColumnName.includes(' ')) {
+			alert('Název sloupce nesmí obsahovat mezery');
+			newColumnName = ''
+			return;
+		}
 		
 		// Check if column with this name already exists
 		const exists = columns.some(col => col.name === newColumnName);

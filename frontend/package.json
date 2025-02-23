@@ -27,6 +27,7 @@
 		"globals": "^15.0.0",
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
+		"sass-embedded": "^1.85.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^3.4.9",
@@ -39,8 +40,6 @@
 		"@stencil/store": "^2.0.16",
 		"@types/lodash": "^4.17.14",
 		"carta-md": "^4.6.7",
-		"isomorphic-dompurify": "^2.20.0",
-		"lodash": "^4.17.21",
-		"marked": "^15.0.4"
+		"lodash": "^4.17.21"
 	}
 }

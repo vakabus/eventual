@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { type EventData } from './+layout';
 	import { type Event } from '$lib/types';
-	import { marked } from 'marked';
+	import { Carta, Markdown } from 'carta-md';
 
 	let { data }: { data: EventData } = $props();
 	let event: Event = $derived(data.event);
-	let renderedHTML: string = $derived(marked.parse(event.description));
 
-	let content: HTMLParagraphElement;
-
-	$effect(() => {
-		content.innerHTML = renderedHTML;
+	let carta = new Carta({
+		sanitizer: false,
 	});
 </script>
 
 <!-- Note: we use tailwind/typography styling for the markdown -->
-<p bind:this={content} class="prose"></p>
+<div class="prose">
+	<Markdown bind:value={event.description} {carta} />
+</div>

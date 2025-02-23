@@ -35,6 +35,9 @@ INSERT INTO participants (event_id, json) VALUES (:event_id, :json) RETURNING *;
 -- name: Participants :many
 SELECT id, json(json) FROM participants WHERE event_id = :event_id;
 
+-- name: Participant :one
+SELECT id, json(json) FROM participants WHERE id = :id;
+
 -- name: RemoveParticipant :exec
 DELETE FROM participants WHERE id = :id and event_id = :event_id;
 
@@ -46,13 +49,13 @@ UPDATE participants SET json = :json WHERE id = :id and event_id = :event_id RET
 INSERT INTO email_templates ( event_id, name, body ) VALUES ( :event_id, :name, :body ) RETURNING *;
 
 -- name: UpdateTemplate :exec
-UPDATE email_templates SET name = :name, body = :body WHERE id = :id AND event_id = :event_id;
+UPDATE email_templates SET name = :name, body = :body WHERE id = :id;
 
 -- name: RemoveTemplate :exec
-DELETE FROM email_templates WHERE id = :id AND event_id = :event_id;
+DELETE FROM email_templates WHERE id = :id;
 
 -- name: Template :one
-SELECT * FROM email_templates WHERE id = :id AND event_id = :event_id;
+SELECT * FROM email_templates WHERE id = :id;
 
 -- name: Templates :many
 SELECT * FROM email_templates WHERE event_id = :event_id;

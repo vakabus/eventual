@@ -7,6 +7,16 @@
 	import { debounce } from 'lodash';
 
 	let { data } = $props();
+	let rendered = $state('');
+
+	async function updateRendered() {
+		const response = await fetch(`/api/event/${data.event.id}/template/${page.params.tid}/render`);
+		if (response.ok) {
+			rendered = await response.text();
+		} else {
+			rendered = 'Nastala chyba při zpracování šablony: ' + (await response.json()['message']);
+		}
+	}
 
 	// we need to use a state variable here, because we need to invalidate the template when it changes
 	let template: Template = $state(
@@ -24,6 +34,8 @@
 		} else {
 			error(response.status, { message: 'Failed to update template' });
 		}
+
+		await updateRendered();
 	}, 500);
 
 	$effect(() => {
@@ -45,6 +57,12 @@
 			error(response.status, { message: 'Failed to delete template' });
 		}
 	}
+
+	async function send() {
+		const response = await fetch(`/api/event/${data.event.id}/template/${page.params.tid}/send`, {
+			method: 'POST'
+		});
+	}
 </script>
 
 <TemplateEditor bind:template />
@@ -52,3 +70,12 @@
 	class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
 	onclick={remove}>Odstranit šablonu</button
 >
+
+<hr />
+
+<div>
+	<h2>Náhled</h2>
+	<div>{@html rendered}</div>
+</div>
+
+<button onclick={send}>Odeslat testovací email</button>
