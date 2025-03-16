@@ -29,19 +29,23 @@
 	}
 </script>
 
-<label for="name" class="block mb-2 font-medium">Název akce</label>
-<input
-	id="name"
-	type="text"
-	bind:value={event.name}
-	placeholder="Název akce"
-	class="block mb-2 w-full p-2 border border-gray-300 rounded-lg"
-/>
+<div class="form-group">
+	<label for="name" class="form-group-label">Název akce</label>
+	<input
+		id="name"
+		type="text"
+		bind:value={event.name}
+		placeholder="Název akce"
+		class="form-control"
+	/>
+</div>
 
-<label for="description" class="block mb-2 font-medium">Popis akce (markdown)</label>
-<textarea
-	id="description"
-	bind:value={event.description}
-	placeholder="Popis akce"
-	class="block mb-2 w-full p-2 border border-gray-300 rounded-lg h-80"
-></textarea>
+<div class="form-group">
+	<label for="description" class="form-group-label">Popis akce (markdown)</label>
+	<textarea
+		id="description"
+		bind:value={event.description}
+		placeholder="Popis akce"
+		class="form-control"
+	></textarea>
+</div>

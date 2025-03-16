@@ -25,6 +25,3 @@ export async function load({ params, fetch }): Promise<EventData> {
 		event: event
 	};
 }
-
-// prevent prerendering of this page
-// export const ssr = false;

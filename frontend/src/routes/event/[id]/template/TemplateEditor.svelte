@@ -7,13 +7,12 @@
 	let { template = $bindable<Template>() } = $props();
 
 	const carta = new Carta({
-		sanitizer: false,
+		sanitizer: false
 	});
 </script>
 
 <h2
 	contenteditable="true"
-	class="text-2xl font-bold mb-4"
 	onkeydown={(e) => e.key === 'Enter' && e.preventDefault()}
 	bind:innerHTML={template.name}
 ></h2>

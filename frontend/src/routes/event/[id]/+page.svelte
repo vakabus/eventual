@@ -7,7 +7,7 @@
 	let event: Event = $derived(data.event);
 
 	let carta = new Carta({
-		sanitizer: false,
+		sanitizer: false
 	});
 </script>
 

@@ -1,4 +1,4 @@
-import { ParticipantsData } from '$lib/ParticipantData.svelte.js';
+import { ParticipantsData } from '$lib/participants.svelte.js';
 import { error } from '@sveltejs/kit';
 
 export type Data = {

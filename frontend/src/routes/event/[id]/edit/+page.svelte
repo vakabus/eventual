@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import EventEditor from '$lib/EventEditor.svelte';
+	import EventEditor from '$lib/components/EventEditor.svelte';
 	import type { Event } from '$lib/types';
 	import type { EventData } from '../+layout';
 

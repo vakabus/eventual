@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { profile } from '$lib/profile.svelte';
 
-	onMount(() => {
-		fetch('/api/profile').then((response) => {
-			if (response.ok) {
-				goto(`#/dashboard/`);
-			} else {
-				goto(`#/login/`);
-			}
-		});
+	profile.subscribe((p) => {
+		if (p.status == 'logged-in') {
+			goto(`#/dashboard/`);
+		} else {
+			goto(`#/login/`);
+		}
 	});
 </script>
 

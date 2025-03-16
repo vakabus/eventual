@@ -5,9 +5,10 @@
 		type BeforeSaveDataDetails,
 		type ColumnRegular
 	} from '@revolist/svelte-datagrid';
+	import { ParticipantsData } from '$lib/participants.svelte';
 
 	let { data } = $props();
-	let participants = $derived(data.participants);
+	let participants: ParticipantsData = $derived(data.participants);
 	let newColumnName = $state('');
 
 	let columns: ColumnRegular[] = $state([
@@ -28,12 +29,14 @@
 				);
 			}
 		},
-		...data.participants.keys.filter((key) => key !== '__id__').map((key) => ({
-			prop: key,
-			name: key,
-			sortable: true
-		}))
-	])
+		...data.participants.keys
+			.filter((key) => key !== '__id__')
+			.map((key) => ({
+				prop: key,
+				name: key,
+				sortable: true
+			}))
+	]);
 
 	async function afteredit(ev: AfterEditEvent) {
 		await participants.notifyUpdate(ev.detail.rowIndex);
@@ -47,17 +50,17 @@
 		if (newColumnName.trim() === '') return;
 		if (newColumnName.includes(' ')) {
 			alert('Název sloupce nesmí obsahovat mezery');
-			newColumnName = ''
+			newColumnName = '';
 			return;
 		}
-		
+
 		// Check if column with this name already exists
-		const exists = columns.some(col => col.name === newColumnName);
+		const exists = columns.some((col) => col.name === newColumnName);
 		if (exists) {
 			alert('Sloupec s tímto názvem již existuje');
 			return;
 		}
-		
+
 		columns = [
 			...columns,
 			{
@@ -66,7 +69,7 @@
 				sortable: true
 			}
 		];
-		
+
 		newColumnName = '';
 	}
 </script>
@@ -80,14 +83,15 @@
 ></RevoGrid>
 
 <div style="margin-top: 1rem">
-	<button onclick={add}>Přidat účastníka</button>
-	
-	<div style="margin-top: 0.5rem">
-		<input 
+	<button onclick={add} class="btn btn-primary">Přidat účastníka</button>
+
+	<div class="d-flex flex-row gap-2">
+		<input
 			type="text"
 			bind:value={newColumnName}
 			placeholder="Název nového sloupce"
-		>
-		<button onclick={addColumn}>Přidat sloupec</button>
+			class="input-group-text"
+		/>
+		<button onclick={addColumn} class="btn btn-primary">Přidat sloupec</button>
 	</div>
 </div>

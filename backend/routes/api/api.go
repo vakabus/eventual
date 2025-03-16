@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func Server() http.Handler {
@@ -300,6 +301,14 @@ func postParticipants(w http.ResponseWriter, r *http.Request, user *gen.User, ev
 	if err != nil {
 		errorJson(w, "invalid request body", http.StatusBadRequest)
 		return
+	}
+
+	// sanity check on the input data: keys can't start with underscore
+	for key := range req.Data {
+		if strings.HasPrefix(key, "_") {
+			errorJson(w, "keys can't start with underscore", http.StatusBadRequest)
+			return
+		}
 	}
 
 	ctx := r.Context()

@@ -1,22 +1,13 @@
 <script lang="ts">
+	import 'bootstrap';
 	import type { Snippet } from 'svelte';
-	import '../app.css';
+	import '../app.scss';
+	import NavBar from '$lib/components/NavBar.svelte';
 	let { children }: { children: Snippet } = $props();
 </script>
 
-<nav class="pt-4 bg-blue-300 text-blue-950">
-	<div class="flex flex-row max-w-prose mx-auto gap-8 text-xl">
-		<a href="#/">Eventovátko</a>
-	</div>
-</nav>
+<NavBar />
 
-<div class="max-w-prose mx-auto mt-4">
+<div class="container">
 	{@render children()}
 </div>
-
-<style lang="postcss">
-	:global(body) {
-		@apply bg-gray-50;
-		@apply text-gray-900;
-	}
-</style>

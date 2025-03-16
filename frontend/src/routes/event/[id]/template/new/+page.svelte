@@ -18,7 +18,8 @@ nemohl(|a) bys prosím zkontrolovat, že slovesa mají správný rod? Jsi totiž
 
 Díky a měj se pěkně,
 Tvoji organizátoři
-`});
+`
+	});
 
 	async function create() {
 		var response = await fetch(`/api/event/${data.event.id}/template`, {

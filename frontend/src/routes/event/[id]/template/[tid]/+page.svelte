@@ -66,10 +66,7 @@
 </script>
 
 <TemplateEditor bind:template />
-<button
-	class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-	onclick={remove}>Odstranit šablonu</button
->
+<button class="btn btn-danger" onclick={remove}>Odstranit šablonu</button>
 
 <hr />
 
@@ -78,4 +75,4 @@
 	<div>{@html rendered}</div>
 </div>
 
-<button onclick={send}>Odeslat testovací email</button>
+<button onclick={send} class="btn btn-danger">Odeslat testovací email</button>
