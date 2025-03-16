@@ -1,6 +1,5 @@
 <script lang="ts">
 	let { data } = $props();
-	let profile = $derived(data.profile);
 	let events = $derived(data.events);
 </script>
 

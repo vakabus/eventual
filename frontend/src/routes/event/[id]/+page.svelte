@@ -13,5 +13,5 @@
 
 <!-- Note: we use tailwind/typography styling for the markdown -->
 <div class="prose">
-	<Markdown bind:value={event.description} {carta} />
+	<Markdown value={event.description} {carta} />
 </div>

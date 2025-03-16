@@ -4,7 +4,7 @@
 
 	profile.subscribe((p) => {
 		if (p.status == 'logged-in') {
-			goto(`#/dashboard/`);
+			goto(`#/event/`);
 		} else {
 			goto(`#/login/`);
 		}

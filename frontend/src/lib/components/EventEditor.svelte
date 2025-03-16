@@ -2,6 +2,9 @@
 	import type { Event } from '$lib/types';
 	let { event }: { event: Event } = $props();
 
+	// localEvent is a clone of event, so we can modify it without affecting the original
+	let localEvent: Event = $state(event);
+
 	export async function pushUpdate() {
 		const response = await fetch(`/api/event/${event.id}`, {
 			method: 'POST',
@@ -34,7 +37,7 @@
 	<input
 		id="name"
 		type="text"
-		bind:value={event.name}
+		bind:value={localEvent.name}
 		placeholder="Název akce"
 		class="form-control"
 	/>
@@ -44,7 +47,7 @@
 	<label for="description" class="form-group-label">Popis akce (markdown)</label>
 	<textarea
 		id="description"
-		bind:value={event.description}
+		bind:value={localEvent.description}
 		placeholder="Popis akce"
 		class="form-control"
 	></textarea>
